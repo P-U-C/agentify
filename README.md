@@ -1,54 +1,97 @@
-# kindling-bootstrap
+# agentify
 
-Adds the Claude Code best-practice kit to any Kind-ling repo in one command.
+Bootstrap any repo to code like the Anthropic team.
+
+One command turns a bare repo into a structured, agent-native coding environment:
+- Persistent project memory (`CLAUDE.md`)
+- Slash commands for every stage of the loop (`/spec /plan /execute /review /mistake`)
+- Subagent role definitions (implementer + reviewer, model-routed)
+- Error corpus (`MISTAKES.md`) that compounds over time
+- Spec history (`specs/`)
+- Model routing config (`.claude/settings.json`)
+
+This is the Boris Cherny workflow — spec → plan → execute → review → commit → repeat — dropped into any project in seconds.
+
+---
 
 ## Usage
 
 ```bash
-export KINDLING_PAT="<YOUR_KINDLING_PAT>"
+export AGENTIFY_PAT="<YOUR_GITHUB_PAT>"
 
-./bootstrap.sh <repo-name> "<product description>" "<reviewer security focus>"
+./agentify.sh <repo-owner/repo-name> "<product description>" "<reviewer security focus>"
 ```
 
-## Examples
+### Examples
 
 ```bash
-./bootstrap.sh twig \
-  "MCP description optimizer — score and rewrite tool descriptions for agent discoverability" \
-  "payment verification must not accept arbitrary tx hashes; wallet addresses never hardcoded"
+# A payment API
+./agentify.sh myorg/payments-api \
+  "x402 micropayment gating for REST APIs" \
+  "no hardcoded wallet addresses; fail-open on chain writes; payment stubs return false"
 
-./bootstrap.sh heat \
-  "Reputation oracle — dual-graph scoring via Moltbook social + x402 economic graph" \
-  "graph manipulation resistance; x402 payment verification; wallet address handling"
+# A data pipeline
+./agentify.sh myorg/pipeline \
+  "ETL pipeline for on-chain event data" \
+  "no API keys in source; idempotent writes; no data loss on retry"
 
-./bootstrap.sh flint \
-  "Moltbook social growth engine — analyze, optimize, schedule agent posts" \
-  "no fake accounts; no auto-upvotes; no spam; no impersonation"
+# An agent service
+./agentify.sh myorg/agent-svc \
+  "MCP tool server for web search and summarization" \
+  "no prompt injection; rate limit enforced; no PII logged"
 ```
+
+---
 
 ## What gets added
 
 ```
 .claude/
   agents/
-    implementer.md   ← sonnet, product-scoped, code only
-    reviewer.md      ← opus, product-scoped security focus, read-only
+    implementer.md   ← sonnet — write code, follow plan exactly, no deviations
+    reviewer.md      ← opus — read-only, structured 🟢/🟡/🔴 report
   commands/
-    plan.md          ← /plan
-    execute.md       ← /execute
-    review.md        ← /review
-    mistake.md       ← /mistake
-    spec.md          ← /spec
-  settings.json      ← model routing table
-MISTAKES.md          ← error corpus (with known patterns from twig pre-seeded)
-specs/               ← created, ready for SPEC_001.md
-CLAUDE.md            ← agent kit section appended
+    spec.md          ← /spec  — convert intent to structured spec
+    plan.md          ← /plan  — architecture plan, no code
+    execute.md       ← /execute — approved plan execution
+    review.md        ← /review — spec + convention + security check
+    mistake.md       ← /mistake — log to MISTAKES.md
+  settings.json      ← model routing: opus for judgment, sonnet for implementation
+CLAUDE.md            ← project memory (appended, not overwritten)
+MISTAKES.md          ← error corpus — append-only, weekly promote to CLAUDE.md
+specs/               ← spec history, one file per feature
 ```
 
-## New repo checklist
+---
 
-1. Create repo on GitHub
-2. Push initial code
-3. Run `./bootstrap.sh <repo> "<desc>" "<security focus>"`
-4. Write `specs/<PRODUCT>_SPEC_001.md`
-5. Start first session: "Read CLAUDE.md. Open specs/SPEC_001.md and run /plan."
+## The loop
+
+```
+/spec   →  write structured spec from plain English
+/plan   →  architecture plan, file list, risks, acceptance criteria
+           iterate until right
+/execute →  agent writes all code, runs tests, reports
+/review →  second agent checks spec compliance + security + conventions
+           fix all 🔴 items
+commit  →  clean, tested, reviewed code
+/mistake → log anything that went wrong → feeds CLAUDE.md rules
+```
+
+You never type code. You type intent. The agents do the rest.
+
+---
+
+## The error corpus system
+
+The compounding advantage. Every mistake logged in `MISTAKES.md` makes the next session better. Patterns that repeat get promoted to `CLAUDE.md` as permanent rules. After a few weeks, the agents know your codebase better than most humans would.
+
+---
+
+## Requirements
+
+- GitHub PAT with repo write access
+- `git`, `curl`, `jq` installed
+
+---
+
+*Inspired by Boris Cherny's workflow at Anthropic. Generalised for any project.*
